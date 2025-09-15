@@ -10,6 +10,13 @@
     margin: 10px;
     box-sizing: border-box;
 }
+.cont {
+	width: 600px;
+	height: 400px;
+	margin: 20px;
+	border: 1px solid #ccc;
+	text-align: center;
+}
 body {
 	font-family: Arial, sans-serif;
 	text-align: center;
