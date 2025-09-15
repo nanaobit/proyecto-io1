@@ -1,3 +1,22 @@
-h1 {
+.titulo {
+	color: red;
+}
+.caja {
 	color: blue;
+	width: 500px;
+    height: 300px;
+    padding: 20px;
+    border: 2px solid #333;
+    margin: 10px;
+    box-sizing: border-box;
+}
+body {
+	font-family: Arial, sans-serif;
+	text-align: center;
+}
+#ggb-element {
+	width: 600px;
+	height: 400px;
+	margin: 20px;
+	border: 1px solid #ccc;
 }
