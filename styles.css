@@ -1,27 +1,18 @@
 .titulo {
 	color: red;
+	font-weight: bold;
 	text-align: center;
-}
-.caja {
-	color: blue;
-	width: 500px;
-    height: 300px;
-    padding: 20px;
-    border: 2px solid #333;
-    margin: 10px;
-    box-sizing: border-box;
-}
+	text-decoration: underline;
+	font-size: 25px;
+}	
 .cont {
 	width: 600px;
 	height: 400px;
 	margin: 20px;
-	border: 1px solid #ccc;
+	border: 2px solid black;
+	text-align: center;
+	padding:0px;
+}
+.conteiner {
 	text-align: center;
 }
-#ggb-element {
-	width: 600px;
-	height: 400px;
-	margin: 20px;
-	border: 1px solid #ccc;
-}
-
