@@ -1,31 +1,101 @@
-<!DOCTYPE html>
-<html>
+</html><!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title> INVESTIGACION OPERATIVA </title>
-	<link rel="stylesheet" href="styles.css">
-	<script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investigacion Operativa</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+	<!--<link rel="stylesheet" href="styles2.css">-->
 </head>
-<body>  
-	<h1 class="titulo"> INVESTIGACION OPERATIVA </h1>
-	<div class="conteiner" id="aux2">
-		<label>x1: 
-			<input type="number" id="x1" value="0"></input>
-		</label>
-		<label>y1: 
-			<input type="number" id="y1" value="10"></input>
-		</label>
-		<br>
-		<label>x2:
-			<input type="number" id="x2" value="10"></input>
-		</label>
-		<label>y2: 
-			<input type="number" id="y2" value="0"></input>
-		</label>
-		<br>
-		<button onclick="graficar()">graficar</button>
-	</div>
-	<div class="cont" id="aux"></div>
-	<script src="scripts.js"></script>
+<body>
+    <div class="container">
+        <header>
+            <h1>Solucionador de Investigacion Operativa</h1>
+            <p>Resuelve problemas de programacion lineal y visualiza los resultados</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Panel de entrada -->
+            <div class="input-panel">
+                <h2>Configuracion del Problema</h2>
+                
+                <!-- Tipo de optimización -->
+                <div class="form-group">
+                    <label>Tipo de Optimizacion:</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="optimization" value="maximize" checked> Maximizar</label>
+                        <label><input type="radio" name="optimization" value="minimize"> Minimizar</label>
+                    </div>
+                </div>
+
+                <!-- Función objetivo -->
+                <div class="form-group">
+                    <label for="objective">Funcion Objetivo (ej: 3x + 2y):</label>
+                    <input type="text" id="objective" placeholder="3x + 2y" value="3x + 2y">
+                </div>
+
+                <!-- Restricciones -->
+                <div class="form-group">
+                    <label>Restricciones:</label>
+                    <div id="constraints-container">
+                        <div class="constraint-row">
+                            <input type="text" placeholder="2x + y" class="constraint-left">
+                            <select class="constraint-operator">
+                                <option value="<=">&le;</option>
+                                <option value=">=">&ge;</option>
+                                <option value="=">=</option>
+                            </select>
+                            <input type="number" placeholder="10" class="constraint-right" value="10">
+                            <button type="button" class="btn-remove" onclick="removeConstraint(this)"></button>
+                        </div>
+                        <div class="constraint-row">
+                            <input type="text" placeholder="x + 2y" class="constraint-left" value="x + 2y">
+                            <select class="constraint-operator">
+                                <option value="<=">&le;</option>
+                                <option value=">=">&ge;</option>
+                                <option value="=">=</option>
+                            </select>
+                            <input type="number" placeholder="8" class="constraint-right" value="8">
+                            <button type="button" class="btn-remove" onclick="removeConstraint(this)"></button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addConstraint()" class="btn-add">Agregar Restriccion</button>
+                </div>
+
+                <!-- Restricciones de no negatividad -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="non-negative" checked>
+                        Variables no negativas (x = 0, y = 0)
+                    </label>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="form-group">
+                    <button onclick="solveProblem()" class="btn-solve">Resolver</button>
+                    <button onclick="clearAll()" class="btn-clear">Limpiar</button>
+                </div>
+            </div>
+
+            <!-- Panel de resultados -->
+            <div class="results-panel">
+                <h2>Resultados</h2>
+                <div id="solution-output">
+                    <div class="placeholder">
+                        <p>Configura tu problema y presiona "Resolver" para ver los resultados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de gráfico -->
+        <div class="chart-panel">
+            <h2>Visualizacion Grafica</h2>
+            <div class="chart-container">
+                <canvas id="feasibilityChart"></canvas>
+            </div>
+        </div>
+    </div>
+   <!-- <script src="scripts2.js"></script>-->
 </body>
 </html>
