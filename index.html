@@ -8,13 +8,24 @@
 </head>
 <body>  
 	<h1 class="titulo"> INVESTIGACION OPERATIVA </h1>
+	<div class="conteiner" id="aux2">
+		<label>x1: 
+			<input type="number" id="x1" value="0"></input>
+		</label>
+		<label>y1: 
+			<input type="number" id="y1" value="10"></input>
+		</label>
+		<br>
+		<label>x2:
+			<input type="number" id="x2" value="10"></input>
+		</label>
+		<label>y2: 
+			<input type="number" id="y2" value="0"></input>
+		</label>
+		<br>
+		<button onclick="graficar()">graficar</button>
+	</div>
 	<div class="cont" id="aux"></div>
-	<script>
-		const data = [{x:[1,2,3], y:[9,8,5], type:'scatter'}]
-		Plotly.newPlot('aux', data)
-	</script>
 	<script src="scripts.js"></script>
-	
 </body>
 </html>
-
