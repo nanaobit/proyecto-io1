@@ -1,4 +1,46 @@
-let chart = null;
+   // Variables globales
+        let ggbApp = null;
+        let currentSolution = null;
+        let constraintColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff'];
+
+        // Inicializar GeoGebra
+        function initGeoGebra() {
+            const ggbApp = new GGBApplet({
+                "appName": "graphing",
+                "width": 800,
+                "height": 500,
+                "showToolBar": false,
+                "showAlgebraInput": false,
+                "showMenuBar": false,
+                "enableRightClick": false,
+                "enableLabelDrags": false,
+                "enableShiftDragZoom": true,
+                "enableLabelDrags": false,
+                "capturingThreshold": null,
+                "language": "es",
+                "backgroundColor": "#1a202c",
+                "appletOnLoad": onGeoGebraLoad
+            }, true);
+
+            ggbApp.inject('ggb-element');
+        }
+
+        // Callback cuando GeoGebra se carga
+        function onGeoGebraLoad() {
+            ggbApp = window.ggbApplet;
+            
+            // Configuración inicial de GeoGebra con tema oscuro
+            ggbApp.setAxisColor(0, "#e2e8f0"); // Eje X
+            ggbApp.setAxisColor(1, "#e2e8f0"); // Eje Y
+            ggbApp.setGridColor("#4a5568");
+            ggbApp.showGrid(true);
+            ggbApp.showAxes(true, true);
+            
+            // Establecer límites de vista inicial
+            ggbApp.setCoordSystem(-2, 12, -2, 10);
+            
+            console.log("📊 GeoGebra cargado exitosamente");
+        }
 
         // Función para agregar restricciones
         function addConstraint() {
@@ -13,7 +55,7 @@ let chart = null;
                     <option value="=">=</option>
                 </select>
                 <input type="number" placeholder="0" class="constraint-right">
-                <button type="button" class="btn-remove" onclick="removeConstraint(this)">?</button>
+                <button type="button" class="btn-remove" onclick="removeConstraint(this)">✕</button>
             `;
             container.appendChild(constraintRow);
         }
@@ -36,17 +78,19 @@ let chart = null;
                         <option value="=">=</option>
                     </select>
                     <input type="number" placeholder="0" class="constraint-right">
-                    <button type="button" class="btn-remove" onclick="removeConstraint(this)">?</button>
+                    <button type="button" class="btn-remove" onclick="removeConstraint(this)">✕</button>
                 </div>
             `;
             document.getElementById('solution-output').innerHTML = `
                 <div class="placeholder">
-                    <p>Configura tu problema y presiona "Resolver" para ver los resultados</p>
+                    <p>👆 Configura tu problema y presiona "Resolver" para ver los resultados</p>
                 </div>
             `;
-            if (chart) {
-                chart.destroy();
-                chart = null;
+            
+            // Limpiar GeoGebra
+            if (ggbApp) {
+                ggbApp.deleteObject("*");
+                ggbApp.setCoordSystem(-2, 12, -2, 10);
             }
         }
 
@@ -58,7 +102,7 @@ let chart = null;
                 const nonNegative = document.getElementById('non-negative').checked;
 
                 if (!objective) {
-                    showError('Por favor, ingresa la funcion objetivo.');
+                    showError('Por favor, ingresa la función objetivo.');
                     return;
                 }
 
@@ -77,14 +121,15 @@ let chart = null;
                 });
 
                 if (constraints.length === 0) {
-                    showError('Por favor, agrega al menos una restriccion.');
+                    showError('Por favor, agrega al menos una restricción.');
                     return;
                 }
 
                 // Resolver usando método simplex simplificado
                 const solution = solveSimplex(objective, constraints, isMaximize, nonNegative);
+                currentSolution = solution;
                 displaySolution(solution);
-                plotGraph(objective, constraints, solution, isMaximize);
+                plotInGeoGebra(objective, constraints, solution, isMaximize, nonNegative);
 
             } catch (error) {
                 showError('Error al resolver el problema: ' + error.message);
@@ -159,7 +204,7 @@ let chart = null;
             const vertices = findVertices(constraintMatrix);
             
             if (vertices.length === 0) {
-                return { status: 'infeasible', message: 'El problema no tiene solucion factible.' };
+                return { status: 'infeasible', message: 'El problema no tiene solución factible.' };
             }
 
             // Evaluar función objetivo en cada vértice
@@ -180,7 +225,8 @@ let chart = null;
                 status: 'optimal',
                 optimalValue: isMaximize ? bestValue : -bestValue,
                 variables: bestPoint,
-                vertices: vertices
+                vertices: vertices,
+                constraints: constraintMatrix
             };
         }
 
@@ -247,8 +293,8 @@ let chart = null;
             if (solution.status === 'optimal') {
                 outputDiv.innerHTML = `
                     <div class="solution-result optimal">
-                        <div class="solution-header">Solucion Optima Encontrada</div>
-                        <div class="solution-value">Valor optimo: ${solution.optimalValue.toFixed(4)}</div>
+                        <div class="solution-header">✅ Solución Óptima Encontrada</div>
+                        <div class="solution-value">Valor óptimo: ${solution.optimalValue.toFixed(4)}</div>
                         <div class="solution-variables">
                             <div class="variable-value">
                                 <div class="variable-name">x</div>
@@ -260,176 +306,253 @@ let chart = null;
                             </div>
                         </div>
                         <div class="steps-section">
-                            <div class="steps-title">Informacion adicional:</div>
-                            <div class="step">Punto optimo: (${solution.variables.x.toFixed(4)}, ${solution.variables.y.toFixed(4)})</div>
-                            <div class="step">Vertices evaluados: ${solution.vertices.length}</div>
-                            <div class="step">Metodo utilizado: Algoritmo Simplex (metodo grafico)</div>
+                            <div class="steps-title">📋 Información adicional:</div>
+                            <div class="step">Punto óptimo: (${solution.variables.x.toFixed(4)}, ${solution.variables.y.toFixed(4)})</div>
+                            <div class="step">Vértices evaluados: ${solution.vertices.length}</div>
+                            <div class="step">Región factible sombreada en GeoGebra</div>
+                            <div class="step">Método: Algoritmo Simplex (método gráfico)</div>
                         </div>
                     </div>
                 `;
             } else if (solution.status === 'infeasible') {
                 outputDiv.innerHTML = `
                     <div class="solution-result infeasible">
-                        <div class="solution-header">? Problema No Factible</div>
+                        <div class="solution-header">❌ Problema No Factible</div>
                         <p>${solution.message}</p>
                     </div>
                 `;
             } else if (solution.status === 'unbounded') {
                 outputDiv.innerHTML = `
                     <div class="solution-result unbounded">
-                        <div class="solution-header">Problema No Acotado</div>
-                        <p>La funcion objetivo puede crecer indefinidamente.</p>
+                        <div class="solution-header">⚠️ Problema No Acotado</div>
+                        <p>La función objetivo puede crecer indefinidamente.</p>
                     </div>
                 `;
             }
         }
 
-        // Graficar la región factible y la solución
-        function plotGraph(objective, constraints, solution, isMaximize) {
-            const ctx = document.getElementById('feasibilityChart').getContext('2d');
-            
-            if (chart) {
-                chart.destroy();
-            }
+        // Función principal para graficar en GeoGebra con sombreado
+        function plotInGeoGebra(objective, constraints, solution, isMaximize, nonNegative) {
+            if (!ggbApp) return;
 
-            // Preparar datos para el gráfico
-            const datasets = [];
-            
-            // Agregar líneas de restricciones
+            // Limpiar objetos anteriores
+            ggbApp.deleteObject("*");
+
+            let constraintIndex = 0;
+
+            // Dibujar restricciones con sombreado
             constraints.forEach((constraint, index) => {
-                const points = generateConstraintLine(constraint, -10, 10);
-                datasets.push({
-                    label: `${constraint.left} ${constraint.operator} ${constraint.right}`,
-                    data: points,
-                    borderColor: `hsl(${index * 60}, 70%, 50%)`,
-                    backgroundColor: 'transparent',
-                    fill: false,
-                    tension: 0
-                });
+                const coeffs = parseLinearExpression(constraint.left);
+                const color = constraintColors[index % constraintColors.length];
+                
+                // Crear la línea de la restricción
+                const lineCommand = createLineCommand(coeffs.x, coeffs.y, constraint.right, `line${index}`);
+                ggbApp.evalCommand(lineCommand);
+                ggbApp.setColor(`line${index}`, ...hexToRgb(color));
+                ggbApp.setLineThickness(`line${index}`, 3);
+
+                // Crear región sombreada según el tipo de restricción
+                createShadedRegion(coeffs, constraint.operator, constraint.right, index, color);
+                constraintIndex++;
             });
 
-            // Agregar función objetivo
-            if (solution.status === 'optimal') {
-                const objCoeffs = parseLinearExpression(objective);
-                const objectivePoints = generateObjectiveLine(objCoeffs, solution.optimalValue, -10, 10);
-                datasets.push({
-                    label: `Función objetivo: ${objective}`,
-                    data: objectivePoints,
-                    borderColor: '#e53e3e',
-                    backgroundColor: 'transparent',
-                    borderWidth: 3,
-                    borderDash: [5, 5],
-                    fill: false,
-                    tension: 0
-                });
+            // Agregar restricciones de no negatividad con sombreado
+            if (nonNegative) {
+                // x >= 0
+                ggbApp.evalCommand(`x_axis: x = 0`);
+                ggbApp.setColor('x_axis', 200, 200, 200);
+                ggbApp.setLineStyle('x_axis', 1);
+                
+                // y >= 0  
+                ggbApp.evalCommand(`y_axis: y = 0`);
+                ggbApp.setColor('y_axis', 200, 200, 200);
+                ggbApp.setLineStyle('y_axis', 1);
 
-                // Punto óptimo
-                datasets.push({
-                    label: 'Punto Optimo',
-                    data: [{ x: solution.variables.x, y: solution.variables.y }],
-                    backgroundColor: '#38a169',
-                    borderColor: '#2f855a',
-                    borderWidth: 3,
-                    pointRadius: 8,
-                    showLine: false
-                });
+                // Sombrear región x >= 0 (lado derecho del eje Y)
+                ggbApp.evalCommand(`region_x_pos: x >= 0 ∧ x <= 20 ∧ y >= -10 ∧ y <= 20`);
+                ggbApp.setColor('region_x_pos', 100, 100, 100);
+                ggbApp.setFilling('region_x_pos', 0.1);
 
-                // Vértices
-                datasets.push({
-                    label: 'Vertices',
-                    data: solution.vertices,
-                    backgroundColor: '#3182ce',
-                    borderColor: '#2c5aa0',
-                    borderWidth: 2,
-                    pointRadius: 5,
-                    showLine: false
-                });
+                // Sombrear región y >= 0 (lado superior del eje X)
+                ggbApp.evalCommand(`region_y_pos: y >= 0 ∧ x >= -10 ∧ x <= 20 ∧ y <= 20`);
+                ggbApp.setColor('region_y_pos', 100, 100, 100);
+                ggbApp.setFilling('region_y_pos', 0.1);
             }
 
-            chart = new Chart(ctx, {
-                type: 'scatter',
-                data: { datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Region Factible y Solucion Optima'
-                        },
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        }
-                    },
-                    scales: {
-                        x: {
-                            type: 'linear',
-                            position: 'center',
-                            title: { display: true, text: 'x' },
-                            grid: { display: true }
-                        },
-                        y: {
-                            type: 'linear',
-                            position: 'center',
-                            title: { display: true, text: 'y' },
-                            grid: { display: true }
-                        }
-                    },
-                    interaction: {
-                        intersect: false
-                    }
-                }
-            });
+            // Si hay solución óptima, dibujar elementos adicionales
+            if (solution.status === 'optimal') {
+                // Dibujar vértices
+                solution.vertices.forEach((vertex, index) => {
+                    ggbApp.evalCommand(`vertex${index}: (${vertex.x}, ${vertex.y})`);
+                    ggbApp.setPointSize(`vertex${index}`, 4);
+                    ggbApp.setColor(`vertex${index}`, 70, 130, 180);
+                });
+
+                // Destacar punto óptimo
+                const optPoint = solution.variables;
+                ggbApp.evalCommand(`optimal_point: (${optPoint.x}, ${optPoint.y})`);
+                ggbApp.setPointSize('optimal_point', 6);
+                ggbApp.setColor('optimal_point', 56, 161, 105);
+                ggbApp.setCaption('optimal_point', 'Óptimo');
+
+                // Dibujar línea de función objetivo en el punto óptimo
+                const objCoeffs = parseLinearExpression(objective);
+                const objValue = isMaximize ? solution.optimalValue : -solution.optimalValue;
+                const objLineCommand = createLineCommand(objCoeffs.x, objCoeffs.y, objValue, 'objective_line');
+                ggbApp.evalCommand(objLineCommand);
+                ggbApp.setColor('objective_line', 229, 62, 62);
+                ggbApp.setLineThickness('objective_line', 4);
+                ggbApp.setLineStyle('objective_line', 2); // Línea punteada
+
+                // Crear región factible combinada (intersección de todas las restricciones)
+                createFeasibleRegion(constraints, nonNegative);
+            }
+
+            // Ajustar vista
+            setTimeout(() => {
+                zoomToFit();
+            }, 500);
         }
 
-        // Generar puntos para línea de restricción
-        function generateConstraintLine(constraint, xMin, xMax) {
-            const points = [];
-            const coeffs = parseLinearExpression(constraint.left);
-            
+        // Crear comando de línea para GeoGebra
+        function createLineCommand(a, b, c, name) {
+            if (Math.abs(b) > 1e-10) {
+                // ax + by = c -> y = (c - ax) / b
+                const slope = -a / b;
+                const yIntercept = c / b;
+                return `${name}: y = ${slope} * x + ${yIntercept}`;
+            } else if (Math.abs(a) > 1e-10) {
+                // ax = c -> x = c/a (línea vertical)
+                const xValue = c / a;
+                return `${name}: x = ${xValue}`;
+            } else {
+                // Caso degenerado
+                return `${name}: y = 0`;
+            }
+        }
+
+        // Crear región sombreada según el operador de restricción
+        function createShadedRegion(coeffs, operator, rhs, index, color) {
+            const rgb = hexToRgb(color);
+            let regionCommand = '';
+
             if (Math.abs(coeffs.y) > 1e-10) {
-                // y = (rhs - ax) / b
-                for (let x = xMin; x <= xMax; x += 0.5) {
-                    const y = (constraint.right - coeffs.x * x) / coeffs.y;
-                    if (y >= -10 && y <= 10) {
-                        points.push({ x, y });
-                    }
+                // Forma general: ax + by [operator] c
+                if (operator === '<=') {
+                    regionCommand = `region${index}: ${coeffs.x} * x + ${coeffs.y} * y <= ${rhs} ∧ x >= -10 ∧ x <= 20 ∧ y >= -10 ∧ y <= 20`;
+                } else if (operator === '>=') {
+                    regionCommand = `region${index}: ${coeffs.x} * x + ${coeffs.y} * y >= ${rhs} ∧ x >= -10 ∧ x <= 20 ∧ y >= -10 ∧ y <= 20`;
+                } else { // operator === '='
+                    // Para igualdades, no sombreamos (solo la línea)
+                    return;
                 }
             } else if (Math.abs(coeffs.x) > 1e-10) {
-                // Línea vertical: x = rhs / a
-                const x = constraint.right / coeffs.x;
-                if (x >= xMin && x <= xMax) {
-                    points.push({ x, y: -10 });
-                    points.push({ x, y: 10 });
+                // Línea vertical: ax = c
+                const xValue = rhs / coeffs.x;
+                if (operator === '<=') {
+                    regionCommand = `region${index}: x <= ${xValue} ∧ x >= -10 ∧ y >= -10 ∧ y <= 20`;
+                } else if (operator === '>=') {
+                    regionCommand = `region${index}: x >= ${xValue} ∧ x <= 20 ∧ y >= -10 ∧ y <= 20`;
+                } else {
+                    return;
                 }
             }
-            
-            return points;
+
+            if (regionCommand) {
+                ggbApp.evalCommand(regionCommand);
+                ggbApp.setColor(`region${index}`, rgb[0], rgb[1], rgb[2]);
+                ggbApp.setFilling(`region${index}`, 0.15);
+            }
         }
 
-        // Generar puntos para línea de función objetivo
-        function generateObjectiveLine(objCoeffs, optimalValue, xMin, xMax) {
-            const points = [];
-            
-            if (Math.abs(objCoeffs.y) > 1e-10) {
-                // y = (optimalValue - cx) / d
-                for (let x = xMin; x <= xMax; x += 0.5) {
-                    const y = (optimalValue - objCoeffs.x * x) / objCoeffs.y;
-                    if (y >= -10 && y <= 10) {
-                        points.push({ x, y });
-                    }
-                }
-            } else if (Math.abs(objCoeffs.x) > 1e-10) {
-                // Línea vertical: x = optimalValue / c
-                const x = optimalValue / objCoeffs.x;
-                if (x >= xMin && x <= xMax) {
-                    points.push({ x, y: -10 });
-                    points.push({ x, y: 10 });
-                }
+        // Crear la región factible (intersección de todas las restricciones)
+        function createFeasibleRegion(constraints, nonNegative) {
+            let feasibleCommand = 'feasible_region: ';
+            const conditions = [];
+
+            // Agregar condiciones de restricciones
+            constraints.forEach((constraint, index) => {
+                const coeffs = parseLinearExpression(constraint.left);
+                const condition = `${coeffs.x} * x + ${coeffs.y} * y ${constraint.operator} ${constraint.right}`;
+                conditions.push(condition);
+            });
+
+            // Agregar restricciones de no negatividad
+            if (nonNegative) {
+                conditions.push('x >= 0');
+                conditions.push('y >= 0');
             }
-            
-            return points;
+
+            // Límites de vista para evitar regiones infinitas
+            conditions.push('x >= -2');
+            conditions.push('x <= 15');
+            conditions.push('y >= -2');
+            conditions.push('y <= 15');
+
+            feasibleCommand += conditions.join(' ∧ ');
+
+            try {
+                ggbApp.evalCommand(feasibleCommand);
+                ggbApp.setColor('feasible_region', 79, 172, 254);
+                ggbApp.setFilling('feasible_region', 0.3);
+            } catch (error) {
+                console.warn('No se pudo crear la región factible combinada:', error);
+            }
+        }
+
+        // Convertir color hex a RGB
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? [
+                parseInt(result[1], 16),
+                parseInt(result[2], 16),
+                parseInt(result[3], 16)
+            ] : [128, 128, 128];
+        }
+
+        // Funciones de control de GeoGebra
+        function resetView() {
+            if (ggbApp) {
+                ggbApp.setCoordSystem(-2, 12, -2, 10);
+            }
+        }
+
+        function toggleGrid() {
+            if (ggbApp) {
+                const currentState = ggbApp.getGridVisible();
+                ggbApp.showGrid(!currentState);
+            }
+        }
+
+        function toggleAxes() {
+            if (ggbApp) {
+                const xVisible = ggbApp.getAxisVisible(0);
+                const yVisible = ggbApp.getAxisVisible(1);
+                ggbApp.showAxes(!xVisible, !yVisible);
+            }
+        }
+
+        function zoomToFit() {
+            if (ggbApp && currentSolution && currentSolution.vertices && currentSolution.vertices.length > 0) {
+                // Calcular límites basados en los vértices
+                let minX = Math.min(...currentSolution.vertices.map(v => v.x));
+                let maxX = Math.max(...currentSolution.vertices.map(v => v.x));
+                let minY = Math.min(...currentSolution.vertices.map(v => v.y));
+                let maxY = Math.max(...currentSolution.vertices.map(v => v.y));
+
+                // Agregar margen
+                const marginX = (maxX - minX) * 0.2;
+                const marginY = (maxY - minY) * 0.2;
+
+                minX = Math.max(minX - marginX, -5);
+                maxX = Math.min(maxX + marginX, 20);
+                minY = Math.max(minY - marginY, -5);
+                maxY = Math.min(maxY + marginY, 15);
+
+                ggbApp.setCoordSystem(minX, maxX, minY, maxY);
+            } else {
+                resetView();
+            }
         }
 
         // Función para cargar ejemplo predefinido
@@ -447,7 +570,7 @@ let chart = null;
                         <option value="=">=</option>
                     </select>
                     <input type="number" placeholder="10" class="constraint-right" value="10">
-                    <button type="button" class="btn-remove" onclick="removeConstraint(this)">?</button>
+                    <button type="button" class="btn-remove" onclick="removeConstraint(this)">✕</button>
                 </div>
                 <div class="constraint-row">
                     <input type="text" placeholder="x + 2y" class="constraint-left" value="x + 2y">
@@ -457,7 +580,7 @@ let chart = null;
                         <option value="=">=</option>
                     </select>
                     <input type="number" placeholder="8" class="constraint-right" value="8">
-                    <button type="button" class="btn-remove" onclick="removeConstraint(this)">?</button>
+                    <button type="button" class="btn-remove" onclick="removeConstraint(this)">✕</button>
                 </div>
             `;
             
@@ -473,158 +596,24 @@ let chart = null;
 
         // Eventos de validación en tiempo real
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar GeoGebra
+            initGeoGebra();
+
             // Validar campos de función objetivo
             document.getElementById('objective').addEventListener('input', function(e) {
                 if (!validateInput(e.target.value)) {
                     e.target.style.borderColor = '#e53e3e';
                 } else {
-                    e.target.style.borderColor = '#e2e8f0';
+                    e.target.style.borderColor = 'rgba(74, 85, 104, 0.5)';
                 }
             });
 
             // Cargar ejemplo inicial
-            loadExample();
-        });
+            setTimeout(() => {
+                loadExample();
+            }, 1000);
 
-        // Función mejorada para el análisis de sensibilidad
-        function performSensitivityAnalysis(objective, constraints, solution) {
-            if (solution.status !== 'optimal') return null;
-
-            const analysis = {
-                objectiveChanges: [],
-                rhsChanges: []
-            };
-
-            const objCoeffs = parseLinearExpression(objective);
-            
-            // Análisis de cambios en coeficientes de función objetivo
-            const deltaC = 0.1;
-            for (let variable of ['x', 'y']) {
-                const originalCoeff = objCoeffs[variable];
-                
-                // Incrementar coeficiente
-                objCoeffs[variable] = originalCoeff + deltaC;
-                const newObjective = `${objCoeffs.x}x + ${objCoeffs.y}y`;
-                const newSolution = solveSimplex(newObjective, constraints, true, true);
-                
-                if (newSolution.status === 'optimal') {
-                    analysis.objectiveChanges.push({
-                        variable: variable,
-                        change: deltaC,
-                        newValue: newSolution.optimalValue,
-                        sensitivity: (newSolution.optimalValue - solution.optimalValue) / deltaC
-                    });
-                }
-                
-                // Restaurar valor original
-                objCoeffs[variable] = originalCoeff;
-            }
-
-            return analysis;
-        }
-
-        // Función para exportar resultados
-        function exportResults() {
-            const objective = document.getElementById('objective').value;
-            const isMaximize = document.querySelector('input[name="optimization"]:checked').value === 'maximize';
-            
-            const exportData = {
-                problema: {
-                    funcionObjetivo: objective,
-                    tipoOptimizacion: isMaximize ? 'Maximizar' : 'Minimizar',
-                    restricciones: [],
-                    noNegativas: document.getElementById('non-negative').checked
-                },
-                solucion: JSON.parse(document.getElementById('solution-output').textContent || '{}'),
-                timestamp: new Date().toISOString()
-            };
-
-            // Recopilar restricciones
-            const constraintRows = document.querySelectorAll('.constraint-row');
-            constraintRows.forEach(row => {
-                const left = row.querySelector('.constraint-left').value.trim();
-                const operator = row.querySelector('.constraint-operator').value;
-                const right = row.querySelector('.constraint-right').value;
-                
-                if (left && right) {
-                    exportData.problema.restricciones.push(`${left} ${operator} ${right}`);
-                }
-            });
-
-            // Crear archivo de descarga
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `solucion_IO_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        // Función para importar problema
-        function importProblem(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    
-                    // Cargar datos del problema
-                    if (data.problema) {
-                        document.getElementById('objective').value = data.problema.funcionObjetivo || '';
-                        
-                        const optimizationType = data.problema.tipoOptimizacion === 'Maximizar' ? 'maximize' : 'minimize';
-                        document.querySelector(`input[value="${optimizationType}"]`).checked = true;
-                        
-                        document.getElementById('non-negative').checked = data.problema.noNegativas || false;
-                        
-                        // Cargar restricciones
-                        if (data.problema.restricciones && data.problema.restricciones.length > 0) {
-                            const container = document.getElementById('constraints-container');
-                            container.innerHTML = '';
-                            
-                            data.problema.restricciones.forEach(restriccion => {
-                                const parts = restriccion.split(/(\<=|\>=|=)/);
-                                if (parts.length >= 3) {
-                                    const constraintRow = document.createElement('div');
-                                    constraintRow.className = 'constraint-row';
-                                    constraintRow.innerHTML = `
-                                        <input type="text" class="constraint-left" value="${parts[0].trim()}">
-                                        <select class="constraint-operator">
-                                            <option value="<=" ${parts[1] === '<=' ? 'selected' : ''}>&le;</option>
-                                            <option value=">=" ${parts[1] === '>=' ? 'selected' : ''}>&ge;</option>
-                                            <option value="=" ${parts[1] === '=' ? 'selected' : ''}>=</option>
-                                        </select>
-                                        <input type="number" class="constraint-right" value="${parts[2].trim()}">
-                                        <button type="button" class="btn-remove" onclick="removeConstraint(this)">?</button>
-                                    `;
-                                    container.appendChild(constraintRow);
-                                }
-                            });
-                        }
-                    }
-                    
-                    alert('Problema importado exitosamente');
-                } catch (error) {
-                    alert('Error al importar el archivo: ' + error.message);
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // Inicializar la aplicación cuando se carga la página
-        window.addEventListener('load', function() {
-            console.log('Solucionador de Investigacion Operativa cargado exitosamente');
-            
-            // Agregar tooltips informativos
-            addTooltips();
-            
-            // Configurar eventos de teclado para resolver con Enter
+            // Configurar eventos de teclado
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && e.ctrlKey) {
                     solveProblem();
@@ -632,44 +621,100 @@ let chart = null;
             });
         });
 
-        // Función para agregar tooltips
-        function addTooltips() {
-            const elements = [
-                { id: 'objective', text: 'Ejemplo: 3x + 2y (usa x e y como variables)' },
-                { class: 'constraint-left', text: 'Ejemplo: 2x + y (lado izquierdo de la restricción)' },
-                { class: 'btn-solve', text: 'Presiona Ctrl+Enter para resolver rápidamente' }
-            ];
+        // Funciones adicionales para mejor experiencia de usuario
+        function exportSolutionImage() {
+            if (ggbApp) {
+                const imageData = ggbApp.getPNGBase64(1, true, 72);
+                const link = document.createElement('a');
+                link.download = 'solucion_programacion_lineal.png';
+                link.href = 'data:image/png;base64,' + imageData;
+                link.click();
+            }
+        }
 
-            elements.forEach(el => {
-                const targets = el.id ? [document.getElementById(el.id)] : document.querySelectorAll(`.${el.class}`);
-                targets.forEach(target => {
-                    if (target) {
-                        target.title = el.text;
-                    }
-                });
+        function copyGeoGebraCommands() {
+            if (!ggbApp) return;
+            
+            let commands = [];
+            const objectNames = ggbApp.getAllObjectNames();
+            
+            for (let name of objectNames) {
+                const command = ggbApp.getCommandString(name);
+                if (command) {
+                    commands.push(command);
+                }
+            }
+            
+            const commandText = commands.join('\n');
+            navigator.clipboard.writeText(commandText).then(() => {
+                alert('Comandos de GeoGebra copiados al portapapeles');
             });
         }
 
-        // Función para detectar problemas comunes
-        function detectCommonIssues(objective, constraints) {
-            const issues = [];
-            
-            // Verificar si la función objetivo está vacía
-            if (!objective.trim()) {
-                issues.push('La funcion objetivo no puede estar vacia');
+        // Agregar funciones avanzadas de análisis
+        function performSensitivityAnalysis() {
+            if (!currentSolution || currentSolution.status !== 'optimal') {
+                alert('Primero resuelve un problema para realizar análisis de sensibilidad');
+                return;
             }
-            
-            // Verificar si hay variables no reconocidas
-            const validVariables = /^[0-9xy+\-.\s]*$/;
-            if (!validVariables.test(objective)) {
-                issues.push('La funcion objetivo contiene caracteres no validos. Use solo x, y, números y operadores +, -');
-            }
-            
-            // Verificar restricciones inconsistentes
-            const objCoeffs = parseLinearExpression(objective);
-            if (objCoeffs.x === 0 && objCoeffs.y === 0) {
-                issues.push('La funcion objetivo debe tener al menos una variable con coeficiente no nulo');
-            }
-            
-            return issues;
+
+            const analysis = {
+                optimalPoint: currentSolution.variables,
+                optimalValue: currentSolution.optimalValue,
+                activeConstraints: [],
+                shadowPrices: []
+            };
+
+            // Identificar restricciones activas
+            const constraints = currentSolution.constraints;
+            const optPoint = currentSolution.variables;
+
+            constraints.forEach((constraint, index) => {
+                const value = constraint.x * optPoint.x + constraint.y * optPoint.y;
+                const tolerance = 1e-6;
+
+                if (Math.abs(value - constraint.rhs) < tolerance) {
+                    analysis.activeConstraints.push({
+                        index: index,
+                        constraint: constraint,
+                        type: 'activa'
+                    });
+                }
+            });
+
+            // Mostrar análisis
+            const analysisHtml = `
+                <div class="steps-section" style="margin-top: 20px;">
+                    <div class="steps-title">📊 Análisis de Sensibilidad:</div>
+                    <div class="step">Punto óptimo: (${optPoint.x.toFixed(4)}, ${optPoint.y.toFixed(4)})</div>
+                    <div class="step">Valor óptimo: ${currentSolution.optimalValue.toFixed(4)}</div>
+                    <div class="step">Restricciones activas: ${analysis.activeConstraints.length}</div>
+                    ${analysis.activeConstraints.map(ac => 
+                        `<div class="step">• Restricción ${ac.index + 1}: ${ac.constraint.x}x + ${ac.constraint.y}y = ${ac.constraint.rhs}</div>`
+                    ).join('')}
+                </div>
+            `;
+
+            document.getElementById('solution-output').innerHTML += analysisHtml;
         }
+
+        // Funciones de utilidad para debugging
+        window.ggbDebug = {
+            listObjects: () => {
+                if (ggbApp) {
+                    console.log('Objetos en GeoGebra:', ggbApp.getAllObjectNames());
+                }
+            },
+            getObjectInfo: (name) => {
+                if (ggbApp && name) {
+                    console.log(`Información de ${name}:`, {
+                        definition: ggbApp.getDefinitionString(name),
+                        command: ggbApp.getCommandString(name),
+                        value: ggbApp.getValueString(name)
+                    });
+                }
+            }
+        };
+
+        console.log("🎯 Solucionador con GeoGebra cargado. Usa window.ggbDebug para debugging.");
+
