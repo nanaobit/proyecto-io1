@@ -149,6 +149,11 @@
             background: rgba(26, 32, 44, 0.8);
             color: #e2e8f0;
         }
+        .constraint-operator{
+             width: auto;      
+             min-width: 150px;  
+        }
+
 
         .btn-remove {
             background: #e53e3e;
@@ -403,6 +408,7 @@
                 padding: 10px;
                 font-size: 14px;
         }
+
 
 
 
