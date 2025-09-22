@@ -397,7 +397,16 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(79, 172, 254, 0.7);
         }
-        
+
+        .geogebra-container{
+                display: inline-block;
+                width: 150px;
+                height: 100px;
+                margin: 5px;
+                background-color: blue;
+                text-align: center;
+                line-height: 100px;
+        }
 
 
 
