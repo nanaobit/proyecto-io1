@@ -144,14 +144,14 @@
         }
 
         .constraint-operator {
-            width: 80px;
+            width: 30px;
             text-align: center;
             background: rgba(26, 32, 44, 0.8);
             color: #e2e8f0;
         }
         .constraint-operator{
              width: auto;      
-             min-width: 80px;  
+             min-width: 30px;  
         }
 
 
@@ -408,6 +408,7 @@
                 padding: 10px;
                 font-size: 14px;
         }
+
 
 
 
