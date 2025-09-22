@@ -417,29 +417,40 @@
                 text-align: center;
                 line-height: 100px;
         }
+    .caja {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f0f0f0;
+      font-family: sans-serif;
+    }
+
     .boton {
-      background-color: #4CAF50;
+      background: #4CAF50;
       color: white;
+      padding: 15px 40px;
+      font-size: 18px;
       border: none;
-      padding: 15px 30px;
-      font-size: 16px;
-      border-radius: 10px;
+      border-radius: 12px;
       cursor: pointer;
-      transition: all 0.2s ease; /* animación suave */
-      box-shadow: 0 5px 0 #388E3C; /* sombra para efecto 3D */
+      transition: all 0.3s ease; /* animación suave */
+      box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2); /* sombra inicial */
     }
 
-    /* cuando el mouse pasa encima */
+    /* Hover: sombra más grande y se levanta */
     .boton:hover {
-      transform: translateY(-3px); /* se levanta un poco */
-      box-shadow: 0 8px 0 #2E7D32;
+      transform: translateY(-5px); /* se levanta */
+      box-shadow: 0px 15px 25px rgba(0, 0, 0, 0.3);
     }
 
-    /* cuando se hace clic */
+    /* Click: se hunde un poco */
     .boton:active {
-      transform: translateY(3px); /* se hunde */
-      box-shadow: 0 2px 0 #1B5E20;
+      transform: translateY(-2px);
+      box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
     }
+
+
 
 
 
