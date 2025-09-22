@@ -413,7 +413,6 @@
                 width: 150px;
                 height: 100px;
                 margin: 5px;
-                background-color: blue;
                 text-align: center;
                 line-height: 100px;
         }
@@ -449,6 +448,7 @@
       transform: translateY(-2px);
       box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
     }
+
 
 
 
