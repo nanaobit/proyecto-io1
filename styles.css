@@ -416,8 +416,32 @@
                 background-color: blue;
                 text-align: center;
                 line-height: 100px;
-                
         }
+    .boton {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease; /* animación suave */
+      box-shadow: 0 5px 0 #388E3C; /* sombra para efecto 3D */
+    }
+
+    /* cuando el mouse pasa encima */
+    .boton:hover {
+      transform: translateY(-3px); /* se levanta un poco */
+      box-shadow: 0 8px 0 #2E7D32;
+    }
+
+    /* cuando se hace clic */
+    .boton:active {
+      transform: translateY(3px); /* se hunde */
+      box-shadow: 0 2px 0 #1B5E20;
+    }
+
+
 
 
 
