@@ -417,7 +417,7 @@
                 text-align: center;
                 line-height: 100px;
         }
-    .caja {
+    .body {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -449,6 +449,7 @@
       transform: translateY(-2px);
       box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
     }
+
 
 
 
