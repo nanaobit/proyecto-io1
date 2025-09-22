@@ -408,5 +408,17 @@
                 line-height: 100px;
         }
 
+        .caja{
+                display: inline-block;
+                width: 150px;
+                height: 100px;
+                margin: 5px;
+                background-color: blue;
+                text-align: center;
+                line-height: 100px;
+                
+        }
+
+
 
 
