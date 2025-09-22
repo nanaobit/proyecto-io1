@@ -400,6 +400,18 @@
 
         .marca{
                 text-align: center; 
+                padding: 10px;
+                font-size: 14px;
+                color: #e0e6ed;
         }
+        .marca{
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                text-align: center;
+                text-align: 14px;
+                background: #e0e6ed;
+        }
+
 
 
