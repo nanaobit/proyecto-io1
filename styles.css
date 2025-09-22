@@ -397,16 +397,7 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(79, 172, 254, 0.7);
         }
-        .geogebra-panel{
-                display: flex;
-                gap: 10px;
-        }
-        .panel-integrantes{
-                flex: 1;
-                height: 100px;
-                background-color: blue;
-                text-align: center;
-                line-height: 100px;
-        }
+        
+
 
 
